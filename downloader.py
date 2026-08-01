@@ -93,12 +93,14 @@ def _download_with_retry(url: str, opts: dict, progress_hook: callable = None) -
 
 def download_audio(url: str, quality: str, output_dir: str, progress_hook: callable = None) -> str:
     """Download audio from URL at given quality. Returns output filepath."""
+    output_dir = str(Path(output_dir).expanduser())
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     return _download_with_retry(url, _build_audio_opts(quality, output_dir), progress_hook)
 
 
 def download_video(url: str, quality: str, output_dir: str, progress_hook: callable = None) -> str:
     """Download video from URL at given quality. Returns output filepath."""
+    output_dir = str(Path(output_dir).expanduser())
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     return _download_with_retry(url, _build_video_opts(quality, output_dir), progress_hook)
 
@@ -106,6 +108,7 @@ def download_video(url: str, quality: str, output_dir: str, progress_hook: calla
 def download_playlist(
     url: str, mode: str, quality: str, output_dir: str,
     on_track_start: callable = None, on_track_done: callable = None,
+    progress_hook: callable = None,
 ) -> list[dict]:
     """Download all tracks in a playlist. mode: 'audio' or 'video'."""
     info = get_track_info(url)
@@ -119,9 +122,9 @@ def download_playlist(
                 raise ValueError("Unavailable or restricted track entry")
             track_url = entry.get("url") or f"https://youtube.com/watch?v={entry.get('id', '')}"
             if mode == "audio":
-                path = download_audio(track_url, quality, output_dir)
+                path = download_audio(track_url, quality, output_dir, progress_hook)
             else:
-                path = download_video(track_url, quality, output_dir)
+                path = download_video(track_url, quality, output_dir, progress_hook)
             results.append({"title": title, "path": path, "error": None})
         except Exception as e:
             results.append({"title": title, "path": None, "error": str(e)})

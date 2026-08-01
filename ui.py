@@ -143,7 +143,7 @@ def show_settings_menu(config: dict) -> dict:
     default_idx = next(
         (str(i + 1) for i, (q, _) in enumerate(AUDIO_QUALITIES) if q == current_q), "1"
     )
-    choice = Prompt.ask("[cyan]Quality[/cyan]", choices=["1", "2", "3", "4"], default=default_idx)
+    choice = Prompt.ask("[cyan]Quality[/cyan]", choices=[str(i + 1) for i in range(len(AUDIO_QUALITIES))], default=default_idx)
     new_quality = AUDIO_QUALITIES[int(choice) - 1][0]
     return {**config, "download_dir": new_dir, "default_quality": new_quality}
 

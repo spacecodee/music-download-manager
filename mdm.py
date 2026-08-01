@@ -5,6 +5,7 @@ import sys
 import config as cfg
 import downloader
 import ui
+from pathlib import Path
 
 
 def _run_single_download(url: str, info: dict, mode: str, quality: str, output_dir: str) -> None:
@@ -14,11 +15,10 @@ def _run_single_download(url: str, info: dict, mode: str, quality: str, output_d
 
         def hook(d: dict) -> None:
             if d["status"] == "downloading":
-                pct_str = d.get("_percent_str", "0%").strip().rstrip("%")
-                try:
-                    progress.update(task, completed=float(pct_str))
-                except ValueError:
-                    pass
+                downloaded = d.get('downloaded_bytes', 0)
+                total = d.get('total_bytes') or d.get('total_bytes_estimate', 0)
+                if total > 0:
+                    progress.update(task, completed=(downloaded / total) * 100)
 
         try:
             if mode == "audio":
@@ -48,10 +48,18 @@ def _run_playlist_download(url: str, info: dict, mode: str, quality: str, output
         def on_track_done(idx: int, result: dict) -> None:
             progress.update(overall, advance=1)
 
+        def hook(d: dict) -> None:
+            if d["status"] == "downloading":
+                downloaded = d.get('downloaded_bytes', 0)
+                total_bytes = d.get('total_bytes') or d.get('total_bytes_estimate', 0)
+                if total_bytes > 0:
+                    progress.update(track_task, completed=(downloaded / total_bytes) * 100)
+
         results = downloader.download_playlist(
             url, mode, quality, output_dir,
             on_track_start=on_track_start,
             on_track_done=on_track_done,
+            progress_hook=hook,
         )
 
     ui.show_summary(results)
@@ -101,6 +109,7 @@ def main() -> None:
             mode = ui.select_mode()
             quality = ui.select_quality(mode, config.get("default_quality", "320"))
             output_dir = config.get("download_dir", "~/Music/Downloads")
+            output_dir = str(Path(output_dir).expanduser())
 
             if not ui.confirm_download(info):
                 continue
