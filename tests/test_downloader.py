@@ -153,3 +153,65 @@ def test_download_with_retry_failure():
                 downloader._download_with_retry("https://youtube.com/watch?v=test", {}, None)
             assert mock_sleep.call_count == 3
             mock_sleep.assert_has_calls([call(2), call(4), call(8)])
+
+
+def test_download_playlist_with_none_entry():
+    fake_info = {
+        "title": "Playlist",
+        "uploader": "User",
+        "duration": None,
+        "is_playlist": True,
+        "entries": [None, {"id": "abc", "title": "Song A"}],
+    }
+    on_start = MagicMock()
+    on_done = MagicMock()
+
+    with patch("downloader.get_track_info", return_value=fake_info):
+        with patch("downloader.download_audio", return_value="/tmp/a.mp3"):
+            results = downloader.download_playlist(
+                "https://youtube.com/playlist?list=xyz",
+                "audio",
+                "320",
+                "/tmp/music",
+                on_track_start=on_start,
+                on_track_done=on_done,
+            )
+
+    assert len(results) == 2
+    assert results[0]["title"] == "Track 1"
+    assert results[0]["path"] is None
+    assert results[0]["error"] is not None
+    assert results[1] == {"title": "Song A", "path": "/tmp/a.mp3", "error": None}
+    assert on_start.call_count == 2
+    assert on_done.call_count == 2
+
+
+def test_download_with_retry_audio_extension_conversion():
+    mock_ydl = MagicMock()
+    mock_ydl.__enter__ = MagicMock(return_value=mock_ydl)
+    mock_ydl.__exit__ = MagicMock(return_value=False)
+    mock_ydl.extract_info.return_value = {"title": "test", "ext": "webm"}
+    mock_ydl.prepare_filename.return_value = "/tmp/music/test.webm"
+
+    opts = downloader._build_audio_opts("320", "/tmp/music")
+
+    with patch("downloader.yt_dlp.YoutubeDL", return_value=mock_ydl):
+        res = downloader._download_with_retry("https://youtube.com/watch?v=test", opts)
+        assert res == "/tmp/music/test.mp3"
+
+
+def test_download_with_retry_appends_to_existing_progress_hooks():
+    mock_ydl = MagicMock()
+    mock_ydl.__enter__ = MagicMock(return_value=mock_ydl)
+    mock_ydl.__exit__ = MagicMock(return_value=False)
+    mock_ydl.extract_info.return_value = {"title": "test"}
+    mock_ydl.prepare_filename.return_value = "/tmp/test.mp4"
+
+    existing_hook = MagicMock()
+    new_hook = MagicMock()
+    opts = {"quiet": True, "progress_hooks": [existing_hook]}
+
+    with patch("downloader.yt_dlp.YoutubeDL", return_value=mock_ydl) as mock_ydl_cls:
+        downloader._download_with_retry("https://youtube.com/watch?v=test", opts, new_hook)
+        mock_ydl_cls.assert_called_once_with({"quiet": True, "progress_hooks": [existing_hook, new_hook]})
+

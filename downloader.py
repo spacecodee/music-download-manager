@@ -68,7 +68,8 @@ def _build_video_opts(quality: str, output_dir: str) -> dict:
 def _download_with_retry(url: str, opts: dict, progress_hook: callable = None) -> str:
     """Download URL with opts, retrying up to 3 times."""
     if progress_hook:
-        opts = {**opts, "progress_hooks": [progress_hook]}
+        hooks = list(opts.get("progress_hooks", [])) + [progress_hook]
+        opts = {**opts, "progress_hooks": hooks}
     last_error = None
     for delay in [0] + RETRY_DELAYS:
         if delay:
@@ -76,7 +77,15 @@ def _download_with_retry(url: str, opts: dict, progress_hook: callable = None) -
         try:
             with yt_dlp.YoutubeDL(opts) as ydl:
                 info = ydl.extract_info(url, download=True)
-                return ydl.prepare_filename(info)
+                filename = info.get("_filename") if info else None
+                if not filename:
+                    filename = ydl.prepare_filename(info)
+                for pp in opts.get("postprocessors", []):
+                    if pp.get("key") == "FFmpegExtractAudio" and "preferredcodec" in pp:
+                        codec = pp["preferredcodec"]
+                        filename = str(Path(filename).with_suffix(f".{codec}"))
+                        break
+                return filename
         except yt_dlp.utils.DownloadError as e:
             last_error = e
     raise last_error
@@ -102,11 +111,13 @@ def download_playlist(
     info = get_track_info(url)
     results = []
     for i, entry in enumerate(info.get("entries") or []):
-        track_url = entry.get("url") or f"https://youtube.com/watch?v={entry.get('id', '')}"
-        title = entry.get("title", f"Track {i + 1}")
+        title = entry.get("title", f"Track {i + 1}") if isinstance(entry, dict) and entry else f"Track {i + 1}"
         if on_track_start:
             on_track_start(i, title)
         try:
+            if not entry or not isinstance(entry, dict):
+                raise ValueError("Unavailable or restricted track entry")
+            track_url = entry.get("url") or f"https://youtube.com/watch?v={entry.get('id', '')}"
             if mode == "audio":
                 path = download_audio(track_url, quality, output_dir)
             else:
