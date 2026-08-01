@@ -15,8 +15,10 @@ def load_config() -> dict:
         return DEFAULT_CONFIG.copy()
     try:
         stored = json.loads(CONFIG_PATH.read_text())
+        if not isinstance(stored, dict):
+            return DEFAULT_CONFIG.copy()
         return {**DEFAULT_CONFIG, **stored}
-    except (json.JSONDecodeError, OSError):
+    except (json.JSONDecodeError, OSError, TypeError):
         return DEFAULT_CONFIG.copy()
 
 

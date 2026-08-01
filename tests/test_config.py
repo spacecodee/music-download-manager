@@ -40,6 +40,16 @@ def test_load_config_handles_corrupted_json(tmp_path):
     assert result["download_dir"] == str(Path("~/Music/Downloads").expanduser())
 
 
+@pytest.mark.parametrize("non_dict_val", ["null", "[]", '"string"', "123", "true"])
+def test_load_config_handles_non_dict_json(tmp_path, non_dict_val):
+    config_path = tmp_path / "config.json"
+    config_path.write_text(non_dict_val)
+    with patch("config.CONFIG_PATH", config_path):
+        result = cfg.load_config()
+    assert result["default_quality"] == "320"
+    assert result["download_dir"] == str(Path("~/Music/Downloads").expanduser())
+
+
 def test_save_config_writes_json(tmp_path):
     config_path = tmp_path / "config.json"
     with patch("config.CONFIG_PATH", config_path):
