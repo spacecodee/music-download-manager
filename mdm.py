@@ -80,9 +80,12 @@ def main() -> None:
             return
 
         if choice == "settings":
-            config = ui.show_settings_menu(config)
-            cfg.save_config(config)
-            ui.show_success("Settings saved.")
+            try:
+                config = ui.show_settings_menu(config)
+                cfg.save_config(config)
+                ui.show_success("Settings saved.")
+            except KeyboardInterrupt:
+                ui.show_error("Settings cancelled.")
             continue
 
         # choice == "download"

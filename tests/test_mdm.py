@@ -6,12 +6,14 @@ def test_main_exits_on_keyboard_interrupt():
     with patch("mdm.ui.show_banner"), \
          patch("mdm.downloader.check_ffmpeg"), \
          patch("mdm.cfg.load_config", return_value={"download_dir": "/tmp", "default_quality": "320"}), \
-         patch("mdm.ui.show_main_menu", side_effect=KeyboardInterrupt):
+         patch("mdm.ui.show_main_menu", side_effect=KeyboardInterrupt), \
+         patch("mdm.ui.show_success") as mock_success:
         import mdm
         try:
             mdm.main()
         except SystemExit:
             pass  # acceptable — clean exit
+        mock_success.assert_called_once_with("Goodbye!")
 
 
 def test_main_download_audio_single_track():
@@ -52,6 +54,18 @@ def test_main_settings_saves_config():
         import mdm
         mdm.main()
     mock_save.assert_called_once_with(new_config)
+
+
+def test_main_settings_keyboard_interrupt_handled():
+    with patch("mdm.ui.show_banner"), \
+         patch("mdm.downloader.check_ffmpeg"), \
+         patch("mdm.cfg.load_config", return_value={"download_dir": "/tmp", "default_quality": "320"}), \
+         patch("mdm.ui.show_main_menu", side_effect=["settings", "exit"]), \
+         patch("mdm.ui.show_settings_menu", side_effect=KeyboardInterrupt), \
+         patch("mdm.ui.show_error") as mock_err:
+        import mdm
+        mdm.main()
+    mock_err.assert_called_once_with("Settings cancelled.")
 
 
 def test_main_ffmpeg_missing_exits():
