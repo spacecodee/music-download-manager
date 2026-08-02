@@ -148,9 +148,9 @@ def show_settings_menu(config: dict) -> dict:
     
     console.print()
     console.print("[dim]Use browser cookies to bypass YouTube restrictions:[/dim]")
-    browsers = ["none", "chrome", "safari", "firefox", "edge", "opera", "vivaldi", "brave"]
+    console.print("[dim]Enter a browser name (chrome, safari, firefox, edge) OR path to a cookies.txt file[/dim]")
     current_cookies = config.get("browser_cookies", "none")
-    cookie_choice = Prompt.ask("[cyan]Browser[/cyan]", choices=browsers, default=current_cookies)
+    cookie_choice = Prompt.ask("[cyan]Browser/Cookie file[/cyan]", default=current_cookies)
     
     return {
         **config, 

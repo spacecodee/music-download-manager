@@ -19,7 +19,10 @@ def get_track_info(url: str, cookies: str = "none") -> dict:
     """Fetch metadata for a URL without downloading."""
     opts = {"quiet": True, "no_warnings": True, "extract_flat": "in_playlist"}
     if cookies and cookies != "none":
-        opts["cookiesfrombrowser"] = (cookies,)
+        if cookies.endswith(".txt") or "/" in cookies or "\\" in cookies:
+            opts["cookiefile"] = str(Path(cookies).expanduser())
+        else:
+            opts["cookiesfrombrowser"] = (cookies,)
     with yt_dlp.YoutubeDL(opts) as ydl:
         info = ydl.extract_info(url, download=False)
     is_playlist = info.get("_type") == "playlist"
@@ -52,7 +55,10 @@ def _build_audio_opts(quality: str, output_dir: str, cookies: str = "none") -> d
         "retries": 3,
     }
     if cookies and cookies != "none":
-        opts["cookiesfrombrowser"] = (cookies,)
+        if cookies.endswith(".txt") or "/" in cookies or "\\" in cookies:
+            opts["cookiefile"] = str(Path(cookies).expanduser())
+        else:
+            opts["cookiesfrombrowser"] = (cookies,)
     return opts
 
 
@@ -69,7 +75,10 @@ def _build_video_opts(quality: str, output_dir: str, cookies: str = "none") -> d
         "retries": 3,
     }
     if cookies and cookies != "none":
-        opts["cookiesfrombrowser"] = (cookies,)
+        if cookies.endswith(".txt") or "/" in cookies or "\\" in cookies:
+            opts["cookiefile"] = str(Path(cookies).expanduser())
+        else:
+            opts["cookiesfrombrowser"] = (cookies,)
     return opts
 
 
