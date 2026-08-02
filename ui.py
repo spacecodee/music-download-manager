@@ -129,7 +129,7 @@ def show_settings_menu(config: dict) -> dict:
     console.print(Panel("[bold]Settings[/bold]", border_style="magenta"))
     new_dir = Prompt.ask(
         "[cyan]Download folder[/cyan]",
-        default=config.get("download_dir", "~/Music/Downloads"),
+        default=config.get("download_dir", "~/Music/Songs-Downloaded"),
     )
     console.print()
     console.print("[dim]Default audio quality:[/dim]")

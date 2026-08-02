@@ -108,7 +108,7 @@ def main() -> None:
 
             mode = ui.select_mode()
             quality = ui.select_quality(mode, config.get("default_quality", "320"))
-            output_dir = config.get("download_dir", "~/Music/Downloads")
+            output_dir = config.get("download_dir", "~/Music/Songs-Downloaded")
             output_dir = str(Path(output_dir).expanduser())
 
             if not ui.confirm_download(info):

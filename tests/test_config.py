@@ -10,7 +10,7 @@ def test_load_config_returns_defaults_when_no_file_exists(tmp_path):
     with patch("config.CONFIG_PATH", config_path):
         result = cfg.load_config()
     assert result["default_quality"] == "320"
-    assert result["download_dir"] == str(Path("~/Music/Downloads").expanduser())
+    assert result["download_dir"] == str(Path("~/Music/Songs-Downloaded").expanduser())
 
 
 def test_load_config_reads_existing_file(tmp_path):
@@ -37,7 +37,7 @@ def test_load_config_handles_corrupted_json(tmp_path):
     with patch("config.CONFIG_PATH", config_path):
         result = cfg.load_config()
     assert result["default_quality"] == "320"
-    assert result["download_dir"] == str(Path("~/Music/Downloads").expanduser())
+    assert result["download_dir"] == str(Path("~/Music/Songs-Downloaded").expanduser())
 
 
 @pytest.mark.parametrize("non_dict_val", ["null", "[]", '"string"', "123", "true"])
@@ -47,7 +47,7 @@ def test_load_config_handles_non_dict_json(tmp_path, non_dict_val):
     with patch("config.CONFIG_PATH", config_path):
         result = cfg.load_config()
     assert result["default_quality"] == "320"
-    assert result["download_dir"] == str(Path("~/Music/Downloads").expanduser())
+    assert result["download_dir"] == str(Path("~/Music/Songs-Downloaded").expanduser())
 
 
 def test_save_config_writes_json(tmp_path):
