@@ -114,11 +114,12 @@ def test_make_progress():
 
 def test_show_settings_menu():
     config = {"download_dir": "~/Music", "default_quality": "320"}
-    with patch("ui.Prompt.ask", side_effect=["~/NewMusic", "2"]):
+    with patch("ui.Prompt.ask", side_effect=["~/NewMusic", "2", "chrome"]):
         import ui
         updated = ui.show_settings_menu(config)
     assert updated["download_dir"] == "~/NewMusic"
     assert updated["default_quality"] == "192"
+    assert updated["browser_cookies"] == "chrome"
 
 
 def test_show_error_and_success():

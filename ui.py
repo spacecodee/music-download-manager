@@ -145,7 +145,19 @@ def show_settings_menu(config: dict) -> dict:
     )
     choice = Prompt.ask("[cyan]Quality[/cyan]", choices=[str(i + 1) for i in range(len(AUDIO_QUALITIES))], default=default_idx)
     new_quality = AUDIO_QUALITIES[int(choice) - 1][0]
-    return {**config, "download_dir": new_dir, "default_quality": new_quality}
+    
+    console.print()
+    console.print("[dim]Use browser cookies to bypass YouTube restrictions:[/dim]")
+    browsers = ["none", "chrome", "safari", "firefox", "edge", "opera", "vivaldi", "brave"]
+    current_cookies = config.get("browser_cookies", "none")
+    cookie_choice = Prompt.ask("[cyan]Browser[/cyan]", choices=browsers, default=current_cookies)
+    
+    return {
+        **config, 
+        "download_dir": new_dir, 
+        "default_quality": new_quality,
+        "browser_cookies": cookie_choice
+    }
 
 
 def show_error(message: str) -> None:

@@ -6,6 +6,7 @@ CONFIG_PATH = Path.home() / ".config" / "mdm" / "config.json"
 DEFAULT_CONFIG: dict = {
     "download_dir": str(Path("~/Music/Songs-Downloaded").expanduser()),
     "default_quality": "320",
+    "browser_cookies": "none",
 }
 
 

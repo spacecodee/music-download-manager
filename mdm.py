@@ -8,7 +8,7 @@ import ui
 from pathlib import Path
 
 
-def _run_single_download(url: str, info: dict, mode: str, quality: str, output_dir: str) -> None:
+def _run_single_download(url: str, info: dict, mode: str, quality: str, output_dir: str, cookies: str) -> None:
     results = []
     with ui.make_progress() as progress:
         task = progress.add_task(f"Downloading: {info['title']}", total=100)
@@ -22,9 +22,9 @@ def _run_single_download(url: str, info: dict, mode: str, quality: str, output_d
 
         try:
             if mode == "audio":
-                path = downloader.download_audio(url, quality, output_dir, progress_hook=hook)
+                path = downloader.download_audio(url, quality, output_dir, progress_hook=hook, cookies=cookies)
             else:
-                path = downloader.download_video(url, quality, output_dir, progress_hook=hook)
+                path = downloader.download_video(url, quality, output_dir, progress_hook=hook, cookies=cookies)
             progress.update(task, completed=100)
             results.append({"title": info["title"], "path": path, "error": None})
         except Exception as e:
@@ -33,7 +33,7 @@ def _run_single_download(url: str, info: dict, mode: str, quality: str, output_d
     ui.show_summary(results)
 
 
-def _run_playlist_download(url: str, info: dict, mode: str, quality: str, output_dir: str) -> None:
+def _run_playlist_download(url: str, info: dict, mode: str, quality: str, output_dir: str, cookies: str) -> None:
     entries = info.get("entries") or []
     total = len(entries)
 
@@ -60,6 +60,7 @@ def _run_playlist_download(url: str, info: dict, mode: str, quality: str, output
             on_track_start=on_track_start,
             on_track_done=on_track_done,
             progress_hook=hook,
+            cookies=cookies,
         )
 
     ui.show_summary(results)
@@ -101,7 +102,7 @@ def main() -> None:
             url = ui.prompt_url()
             ui.console.print("\n[dim]Fetching info…[/dim]")
             try:
-                info = downloader.get_track_info(url)
+                info = downloader.get_track_info(url, config.get("browser_cookies", "none"))
             except Exception as e:
                 ui.show_error(f"Could not fetch info: {e}")
                 continue
@@ -114,10 +115,11 @@ def main() -> None:
             if not ui.confirm_download(info):
                 continue
 
+            cookies = config.get("browser_cookies", "none")
             if info["is_playlist"]:
-                _run_playlist_download(url, info, mode, quality, output_dir)
+                _run_playlist_download(url, info, mode, quality, output_dir, cookies)
             else:
-                _run_single_download(url, info, mode, quality, output_dir)
+                _run_single_download(url, info, mode, quality, output_dir, cookies)
 
         except KeyboardInterrupt:
             ui.show_error("Download cancelled.")
