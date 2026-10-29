@@ -1,6 +1,6 @@
 # Music Download Manager (mdm)
 
-Aplicación de terminal interactiva para descargar audio (MP3 / FLAC) o video (MP4) desde YouTube, con soporte para listas de reproducción. Usa [yt-dlp](https://github.com/yt-dlp/yt-dlp) y [rich](https://github.com/Textualize/rich).
+Aplicación de terminal interactiva para descargar audio (MP3 / FLAC) o video (MP4) desde YouTube, con soporte para listas de reproducción. Usa [yt-dlp](https://github.com/yt-dlp/yt-dlp) y [Textual](https://github.com/Textualize/textual).
 
 ## Características
 
@@ -62,7 +62,7 @@ Si YouTube bloquea la descarga (verificación de bot, contenido con restricción
 
 ```
 mdm.py          # Punto de entrada y bucle del menú
-ui.py           # Interfaz (rich): menús, prompts, progreso, resumen
+tui.py          # Interfaz (Textual): descarga, ajustes, progreso, resumen
 downloader.py   # Lógica yt-dlp: info, audio, video, playlist, reintentos
 config.py       # Carga/guardado de configuración JSON
 tests/          # Tests con pytest
